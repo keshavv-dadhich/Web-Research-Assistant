@@ -26,6 +26,7 @@ User Topic → [generate_query] → [web_research] → [summarize_sources]
 ↘→ [finalize_summary] → Summary
 
 
+
 - **Configuration** (`configuration.py`): Pydantic model reading `.env` or Graph UI overrides.  
 - **Utils** (`utils.py`): Search wrappers, deduplication, markdown conversion.  
 - **LM wrapper** (`lmstudio.py`): Custom ChatOpenAI subclass pointing at local LM Studio.  
