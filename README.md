@@ -20,12 +20,11 @@ Here's a demonstration of the project in action:
 <video controls src="path/to/demo.mp4" />
 
 ## Architecture
-
 User Topic → [generate_query] → [web_research] → [summarize_sources]
 ↘←–[reflect_on_summary]←–(loops up to max_web_research_loops)→
 ↘→ [finalize_summary] → Summary
 
-
+## Files
 
 - **Configuration** (`configuration.py`): Pydantic model reading `.env` or Graph UI overrides.  
 - **Utils** (`utils.py`): Search wrappers, deduplication, markdown conversion.  
@@ -42,7 +41,7 @@ User Topic → [generate_query] → [web_research] → [summarize_sources]
 
 ## Installation
 
-```bash
+
 git clone https://github.com/yourusername/ollama-deep-researcher.git
 cd ollama-deep-researcher
 python -m venv .venv
@@ -51,7 +50,7 @@ pip install -U pip
 pip install -e .[dev]
 
 
-Configuration
+## Configuration
 Copy .env.example to .env and fill in values:
 
 # Search
@@ -124,5 +123,3 @@ This project is licensed under the MIT License. See LICENSE for details.
 
 Built with ❤️ using LangChain, LangGraph, LM Studio, and Ollama.
 
-Copy
-Edit
