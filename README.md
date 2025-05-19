@@ -1,55 +1,47 @@
-Web Research Assistant
+# Web Research Assistant
 
-Fully local web research and summarization assistant with LM Studio, Ollama, and LangGraph
+**Fully local web research and summarization assistant with LM Studio, Ollama, and LangGraph**
 
 A powerful, modular tool that leverages local LLMs (via LM Studio or Ollama) and LangGraph to perform iterative web research, extract insights, and produce cohesive summaries—all without sending any data to external cloud services.
 
-Features
+## Features
 
-Local LLM integration: Run queries and summarization on local models (llama-3.2-3b-instruct or others) via LM Studio or Ollama.
+- **Local LLM integration**: Run queries and summarization on local models (`llama-3.2-3b-instruct` or others) via LM Studio or Ollama.  
+- **Web search support**: Plug into DuckDuckGo, Tavily, Perplexity, or SearXNG for customizable research backends.  
+- **Iterative research loops**: Automatically generate follow-up queries to fill knowledge gaps.  
+- **Configurable depth**: Control the number of research iterations (default 3).  
+- **Environment-driven**: Simple `.env` configuration for all keys and endpoints.  
+- **LangGraph workflow**: Define research flow as nodes for query generation, web search, summarization, reflection, and final report.  
 
-Web search support: Plug into DuckDuckGo, Tavily, Perplexity, or SearXNG for customizable research backends.
-
-Iterative research loops: Automatically generate follow-up queries to fill knowledge gaps.
-
-Configurable depth: Control the number of research iterations (default 3).
-
-Environment-driven: Simple .env configuration for all keys and endpoints.
-
-LangGraph workflow: Define research flow as nodes for query generation, web search, summarization, reflection, and final report.
-
-Demo Video
+## Demo Video
 
 Here's a demonstration of the project in action:
 
-Architecture
+<video controls src="path/to/demo.mp4" />
 
- User Topic → [generate_query] → [web_research] → [summarize_sources]
-        ↘←–[reflect_on_summary]←–(loops up to max_web_research_loops)→
-                             ↘→ [finalize_summary] → Summary
+## Architecture
 
-Configuration (configuration.py): Pydantic model reading .env or Graph UI overrides.
+User Topic → [generate_query] → [web_research] → [summarize_sources]
+↘←–[reflect_on_summary]←–(loops up to max_web_research_loops)→
+↘→ [finalize_summary] → Summary
 
-Utils (utils.py): Search wrappers, deduplication, markdown conversion.
 
-LM wrapper (lmstudio.py): Custom ChatOpenAI subclass pointing at local LM Studio.
+- **Configuration** (`configuration.py`): Pydantic model reading `.env` or Graph UI overrides.  
+- **Utils** (`utils.py`): Search wrappers, deduplication, markdown conversion.  
+- **LM wrapper** (`lmstudio.py`): Custom ChatOpenAI subclass pointing at local LM Studio.  
+- **Prompts** (`prompts.py`): Templates for query writing, summarization, reflection.  
+- **Graph** (`graph.py`): LangGraph nodes and routing logic.  
+- **State** (`state.py`): Dataclasses defining graph state.  
 
-Prompts (prompts.py): Templates for query writing, summarization, reflection.
+## Prerequisites
 
-Graph (graph.py): LangGraph nodes and routing logic.
+- Python ≥ 3.11  
+- [LM Studio](https://lmstudio.ai/) or [Ollama](https://ollama.ai/) running locally  
+- Optional: `pip install -e .` in a virtual environment  
 
-State (state.py): Dataclasses defining graph state.
+## Installation
 
-Prerequisites
-
-Python ≥ 3.11
-
-LM Studio or Ollama running locally
-
-Optional: pip install -e . in a virtual environment
-
-Installation
-
+```bash
 git clone https://github.com/yourusername/ollama-deep-researcher.git
 cd ollama-deep-researcher
 python -m venv .venv
@@ -57,8 +49,8 @@ source .venv/bin/activate
 pip install -U pip
 pip install -e .[dev]
 
-Configuration
 
+Configuration
 Copy .env.example to .env and fill in values:
 
 # Search
@@ -81,9 +73,8 @@ FETCH_FULL_PAGE=true
 LANGSMITH_API_KEY=
 LANGSMITH_TRACING=false
 
-Note: If using LM Studio, ensure OPENAI_API_BASE and OPENAI_API_KEY are set:
-
-OPENAI_API_BASE=http://localhost:1234
+# For LM Studio compatibility
+OPENAI_API_BASE=http://your-lmstudio-host:1234
 OPENAI_API_KEY=not-needed
 
 Running the Dev Server
@@ -93,7 +84,6 @@ langgraph dev  # starts on port 2024 by default
 Open http://localhost:2024 in your browser to view the graph UI, inspect nodes, and adjust configuration on the fly.
 
 Usage
-
 In the LangGraph UI, enter your research topic in the research_topic input.
 
 Click Run. The assistant will:
@@ -111,15 +101,13 @@ Produce a final summary with formatted sources
 Download or copy the summary as needed.
 
 Troubleshooting
+Unexpected endpoint: Ensure OPENAI_API_BASE points to your LM Studio/Ollama host and you’re instantiating ChatLMStudio without extra base_url or model_name kwargs.
 
-``: Ensure OPENAI_API_BASE is set to your LM Studio/Ollama host and you pass base_url correctly in ChatLMStudio.
+No generations found in stream: Disable streaming by setting stream=False in .invoke() or via the wrapper.
 
-``: Disable streaming by setting stream=False in .invoke() or via the wrapper.
-
-``: Lower max_tokens via LMSTUDIO_MAX_TOKENS or per-call max_tokens.
+Prompt too large: Lower max_tokens via LMSTUDIO_MAX_TOKENS in your .env or per-node max_tokens in code.
 
 Contributing
-
 Fork the repo
 
 Create a branch: git checkout -b feature/my-feature
@@ -131,8 +119,9 @@ Push: git push origin feature/my-feature
 Open a pull request
 
 License
-
 This project is licensed under the MIT License. See LICENSE for details.
 
 Built with ❤️ using LangChain, LangGraph, LM Studio, and Ollama.
 
+Copy
+Edit
