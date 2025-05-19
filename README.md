@@ -1,125 +1,127 @@
 # Web Research Assistant
 
-**Fully local web research and summarization assistant with LM Studio, Ollama, and LangGraph**
-
-A powerful, modular tool that leverages local LLMs (via LM Studio or Ollama) and LangGraph to perform iterative web research, extract insights, and produce cohesive summaries—all without sending any data to external cloud services.
-
-## Features
-
-- **Local LLM integration**: Run queries and summarization on local models (`llama-3.2-3b-instruct` or others) via LM Studio or Ollama.  
-- **Web search support**: Plug into DuckDuckGo, Tavily, Perplexity, or SearXNG for customizable research backends.  
-- **Iterative research loops**: Automatically generate follow-up queries to fill knowledge gaps.  
-- **Configurable depth**: Control the number of research iterations (default 3).  
-- **Environment-driven**: Simple `.env` configuration for all keys and endpoints.  
-- **LangGraph workflow**: Define research flow as nodes for query generation, web search, summarization, reflection, and final report.  
-
-## Demo Video
-
-Here's a demonstration of the project in action:
-
-<video controls src="path/to/demo.mp4" />
-
-## Architecture
-User Topic → [generate_query] → [web_research] → [summarize_sources]
-↘←–[reflect_on_summary]←–(loops up to max_web_research_loops)→
-↘→ [finalize_summary] → Summary
-
-## Files
-
-- **Configuration** (`configuration.py`): Pydantic model reading `.env` or Graph UI overrides.  
-- **Utils** (`utils.py`): Search wrappers, deduplication, markdown conversion.  
-- **LM wrapper** (`lmstudio.py`): Custom ChatOpenAI subclass pointing at local LM Studio.  
-- **Prompts** (`prompts.py`): Templates for query writing, summarization, reflection.  
-- **Graph** (`graph.py`): LangGraph nodes and routing logic.  
-- **State** (`state.py`): Dataclasses defining graph state.  
-
-## Prerequisites
-
-- Python ≥ 3.11  
-- [LM Studio](https://lmstudio.ai/) or [Ollama](https://ollama.ai/) running locally  
-- Optional: `pip install -e .` in a virtual environment  
-
-## Installation
+Web Research ASsistant is a fully local web research assistant that uses any LLM hosted by [Ollama](https://ollama.com/search) or [LMStudio](https://lmstudio.ai/). Give it a topic and it will generate a web search query, gather web search results, summarize the results of web search, reflect on the summary to examine knowledge gaps, generate a new search query to address the gaps, and repeat for a user-defined number of cycles. It will provide the user a final markdown summary with all sources used to generate the summary.
 
 
-git clone https://github.com/yourusername/ollama-deep-researcher.git
-cd ollama-deep-researcher
+
+## 🚀 Quickstart
+
+Clone the repository:
+```shell
+git clone https://github.com/langchain-ai/local-deep-researcher.git
+cd local-deep-researcher
+```
+
+Then edit the `.env` file to customize the environment variables according to your needs. These environment variables control the model selection, search tools, and other configuration settings. When you run the application, these values will be automatically loaded via `python-dotenv` (because `langgraph.json` point to the "env" file).
+```shell
+cp .env.example .env
+```
+
+
+
+
+### Selecting local model with LMStudio
+
+1. Download and install LMStudio from [here](https://lmstudio.ai/).
+
+2. In LMStudio:
+   - Download and load your preferred model (e.g., qwen_qwq-32b)
+   - Go to the "Local Server" tab
+   - Start the server with the OpenAI-compatible API
+   - Note the server URL (default: http://localhost:1234/v1)
+
+3. Optionally, update the `.env` file with the following LMStudio configuration settings. 
+
+* If set, these values will take precedence over the defaults set in the `Configuration` class in `configuration.py`.
+LLM_PROVIDER=lmstudio
+LOCAL_LLM=qwen_qwq-32b  # Use the exact model name as shown in LMStudio
+LMSTUDIO_BASE_URL=http://localhost:1234/v1
+
+### Selecting search tool
+
+By default, it will use [DuckDuckGo](https://duckduckgo.com/) for web search, which does not require an API key. But you can also use [SearXNG](https://docs.searxng.org/), [Tavily](https://tavily.com/) or [Perplexity](https://www.perplexity.ai/hub/blog/introducing-the-sonar-pro-api) by adding their API keys to the environment file. Optionally, update the `.env` file with the following search tool configuration and API keys. If set, these values will take precedence over the defaults set in the `Configuration` class in `configuration.py`. 
+```shell
+SEARCH_API=xxx # the search API to use, such as `duckduckgo` (default)
+TAVILY_API_KEY=xxx # the tavily API key to use
+PERPLEXITY_API_KEY=xxx # the perplexity API key to use
+MAX_WEB_RESEARCH_LOOPS=xxx # the maximum number of research loop steps, defaults to `3`
+FETCH_FULL_PAGE=xxx # fetch the full page content (with `duckduckgo`), defaults to `false`
+```
+
+### Running with LangGraph Studio
+
+#### Mac
+
+1. (Recommended) Create a virtual environment:
+```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -U pip
-pip install -e .[dev]
+```
 
+2. Launch LangGraph server:
 
-## Configuration
-Copy .env.example to .env and fill in values:
+```bash
+# Install uv package manager
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uvx --refresh --from "langgraph-cli[inmem]" --with-editable . --python 3.11 langgraph dev
+```
 
-# Search
-SEARCH_API=duckduckgo
-TAVILY_API_KEY=
-PERPLEXITY_API_KEY=
-SEARXNG_URL=http://localhost:8888
+### Using the LangGraph Studio UI
 
-# LLM
-LLM_PROVIDER=lmstudio   # or ollama
-LOCAL_LLM=llama-3.2-3b-instruct
-LMSTUDIO_BASE_URL=http://localhost:1234
-OLLAMA_BASE_URL=http://localhost:11434
+When you launch LangGraph server, you should see the following output and Studio will open in your browser:
+> Ready!
 
-# Research
-MAX_WEB_RESEARCH_LOOPS=3
-FETCH_FULL_PAGE=true
+> API: http://127.0.0.1:2024
 
-# LangSmith (optional)
-LANGSMITH_API_KEY=
-LANGSMITH_TRACING=false
+> Docs: http://127.0.0.1:2024/docs
 
-# For LM Studio compatibility
-OPENAI_API_BASE=http://your-lmstudio-host:1234
-OPENAI_API_KEY=not-needed
+> LangGraph Studio Web UI: https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024
 
-Running the Dev Server
+Open `LangGraph Studio Web UI` via the URL above. In the `configuration` tab, you can directly set various assistant configurations. Keep in mind that the priority order for configuration values is:
 
-langgraph dev  # starts on port 2024 by default
+```
+1. Environment variables (highest priority)
+2. LangGraph UI configuration
+3. Default values in the Configuration class (lowest priority)
+```
 
-Open http://localhost:2024 in your browser to view the graph UI, inspect nodes, and adjust configuration on the fly.
+Give the assistant a topic for research, and you can visualize its process!
 
-Usage
-In the LangGraph UI, enter your research topic in the research_topic input.
+<img width="1621" alt="Screenshot 2025-01-24 at 10 08 22 PM" src="https://github.com/user-attachments/assets/4de6bd89-4f3b-424c-a9cb-70ebd3d45c5f" />
 
-Click Run. The assistant will:
+### Model Compatibility Note
 
-Generate an optimized search query
+When selecting a local LLM, set steps use structured JSON output. Some models may have difficulty with this requirement, and the assistant has fallback mechanisms to handle this. As an example, the [DeepSeek R1 (7B)](https://ollama.com/library/deepseek-llm:7b) and [DeepSeek R1 (1.5B)](https://ollama.com/library/deepseek-r1:1.5b) models have difficulty producing required JSON output, and the assistant will use a fallback mechanism to handle this.
+  
+### Browser Compatibility Note
 
-Fetch web results
+When accessing the LangGraph Studio UI:
+- Firefox is recommended for the best experience
+- Safari users may encounter security warnings due to mixed content (HTTPS/HTTP)
+- If you encounter issues, try:
+  1. Using Firefox or another browser
+  2. Disabling ad-blocking extensions
+  3. Checking browser console for specific error messages
 
-Summarize findings
+## How it works
 
-Reflect and generate follow-up queries
+Local Deep Researcher is inspired by [IterDRAG](https://arxiv.org/html/2410.04343v1#:~:text=To%20tackle%20this%20issue%2C%20we,used%20to%20generate%20intermediate%20answers.). This approach will decompose a query into sub-queries, retrieve documents for each one, answer the sub-query, and then build on the answer by retrieving docs for the second sub-query. Here, we do similar:
+- Given a user-provided topic, use a local LLM (via [Ollama](https://ollama.com/search) or [LMStudio](https://lmstudio.ai/)) to generate a web search query
+- Uses a search engine / tool to find relevant sources
+- Uses LLM to summarize the findings from web search related to the user-provided research topic
+- Then, it uses the LLM to reflect on the summary, identifying knowledge gaps
+- It generates a new search query to address the knowledge gaps
+- The process repeats, with the summary being iteratively updated with new information from web search
+- Runs for a configurable number of iterations (see `configuration` tab)
 
-Produce a final summary with formatted sources
+## Outputs
 
-Download or copy the summary as needed.
+The output of the graph is a markdown file containing the research summary, with citations to the sources used. All sources gathered during research are saved to the graph state. You can visualize them in the graph state, which is visible in LangGraph Studio:
 
-Troubleshooting
-Unexpected endpoint: Ensure OPENAI_API_BASE points to your LM Studio/Ollama host and you’re instantiating ChatLMStudio without extra base_url or model_name kwargs.
+![Screenshot 2024-12-05 at 4 08 59 PM](https://github.com/user-attachments/assets/e8ac1c0b-9acb-4a75-8c15-4e677e92f6cb)
 
-No generations found in stream: Disable streaming by setting stream=False in .invoke() or via the wrapper.
+The final summary is saved to the graph state as well:
 
-Prompt too large: Lower max_tokens via LMSTUDIO_MAX_TOKENS in your .env or per-node max_tokens in code.
+![Screenshot 2024-12-05 at 4 10 11 PM](https://github.com/user-attachments/assets/f6d997d5-9de5-495f-8556-7d3891f6bc96)
 
-Contributing
-Fork the repo
-
-Create a branch: git checkout -b feature/my-feature
-
-Commit: git commit -am 'Add new feature'
-
-Push: git push origin feature/my-feature
-
-Open a pull request
-
-License
-This project is licensed under the MIT License. See LICENSE for details.
-
-Built with ❤️ using LangChain, LangGraph, LM Studio, and Ollama.
 
